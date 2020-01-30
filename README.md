@@ -1,6 +1,8 @@
-# Find real apps on Play Store "Jurusan IT"
+# check it on Play Store : [Sharing IT](https://play.google.com/store/apps/details?id=com.yk.jurusanit)
 
-Android App Web View , display Admob Banner & interinial.
+Android App Web View , display Admob Banner & interstitial.
+
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
