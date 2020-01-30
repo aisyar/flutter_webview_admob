@@ -8,7 +8,33 @@ import 'package:jurusanit/UI/WebPage.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Admob.initialize(getAppId());
-  runApp(MyApp());
+  runApp(MyHome());
+}
+
+class MyHome extends StatelessWidget {
+  final MaterialColor white = const MaterialColor(
+    0xFFFFFFFF,
+    const <int, Color>{
+      50: const Color(0xFFFFFFFF),
+      100: const Color(0xFFFFFFFF),
+      200: const Color(0xFFFFFFFF),
+      300: const Color(0xFFFFFFFF),
+      400: const Color(0xFFFFFFFF),
+      500: const Color(0xFFFFFFFF),
+      600: const Color(0xFFFFFFFF),
+      700: const Color(0xFFFFFFFF),
+      800: const Color(0xFFFFFFFF),
+      900: const Color(0xFFFFFFFF),
+    },
+  );
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyApp(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primaryColor: white),
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -95,21 +121,26 @@ class _MyAppState extends State<MyApp> {
     ));
   }
 
-  Future<bool> _onBackPressed() {
+  Future<bool> _onWillPop(FlutterWebviewPlugin fwp) {
+    interstitialAd.show();
+    fwp.hide();
     return showDialog(
           context: context,
-          builder: (context) => new AlertDialog(
-            title: new Text('Are you sure?'),
-            content: new Text('Do you want to exit an App'),
+          builder: (context) => AlertDialog(
+            title: Text('Are you sure?'),
+            content: Text('Do you want to exit an App'),
             actions: <Widget>[
-              new GestureDetector(
-                onTap: () => Navigator.of(context).pop(false),
-                child: Text("NO"),
+              FlatButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                  fwp.show();
+                },
+                child: Text('No', style: TextStyle(color: Colors.black)),
               ),
-              SizedBox(height: 16),
-              new GestureDetector(
-                onTap: () => Navigator.of(context).pop(true),
-                child: Text("YES"),
+              FlatButton(
+                onPressed: () => exit(0),
+                /*Navigator.of(context).pop(true)*/
+                child: Text('Yes', style: TextStyle(color: Colors.black)),
               ),
             ],
           ),
@@ -122,31 +153,29 @@ class _MyAppState extends State<MyApp> {
     final flutterWebviewPlugin = new FlutterWebviewPlugin();
 
     return WillPopScope(
-      onWillPop: _onBackPressed,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: Scaffold(
-            key: scaffoldState,
-            body: Stack(
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 50.0),
-                  child: WebviewScaffold(
-                    url:"https://kuliah-jurusan-it.blogspot.com/", //"http://jurusanit.epizy.com/", //for http add AndroidManifest.xml <Application after @mipmap android:usesCleartextTraffic="true"
-                    withJavascript: true,
-                    withZoom: false,
-                    hidden: true,
-                    appBar: AppBar(
+      onWillPop: () => _onWillPop(flutterWebviewPlugin),
+      child: Scaffold(
+          key: scaffoldState,
+          body: Stack(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 50.0),
+                child: WebviewScaffold(
+                  url: "https://kuliah-jurusan-it.blogspot.com/",
+                  //"http://jurusanit.epizy.com/", //for http add AndroidManifest.xml <Application after @mipmap android:usesCleartextTraffic="true"
+                  withJavascript: true,
+                  withZoom: false,
+                  hidden: true,
+                  appBar: PreferredSize(
+                    preferredSize: Size.fromHeight(40),
+                    child: AppBar(
                       automaticallyImplyLeading: true,
                       elevation: 1,
                       actions: <Widget>[
                         InkWell(
                           child: Icon(
                             Icons.arrow_back,
-                            size: 30.0,
+                            size: 35.0,
                           ),
                           onTap: () async {
                             if (await interstitialAd.isLoaded) {
@@ -162,7 +191,7 @@ class _MyAppState extends State<MyApp> {
                         InkWell(
                             child: Icon(
                               Icons.refresh,
-                              size: 30.0,
+                              size: 35.0,
                             ),
                             onTap: () async {
                               if (await interstitialAd.isLoaded) {
@@ -178,7 +207,7 @@ class _MyAppState extends State<MyApp> {
                         InkWell(
                           child: Icon(
                             Icons.arrow_forward,
-                            size: 30.0,
+                            size: 35.0,
                           ),
                           onTap: () async {
                             if (await interstitialAd.isLoaded) {
@@ -194,23 +223,22 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    height: 50.0,
-                    child: AdmobBanner(
-                      adUnitId: getBannerAdUnitId(),
-                      adSize: AdmobBannerSize.BANNER,
-                      listener:
-                          (AdmobAdEvent event, Map<String, dynamic> args) {
-                        handleEvent(event, args, 'Banner');
-                      },
-                    ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: 50.0,
+                  child: AdmobBanner(
+                    adUnitId: getBannerAdUnitId(),
+                    adSize: AdmobBannerSize.BANNER,
+                    listener: (AdmobAdEvent event, Map<String, dynamic> args) {
+                      handleEvent(event, args, 'Banner');
+                    },
                   ),
-                )
-              ],
-            )),
-      ),
+                ),
+              )
+            ],
+          )),
     );
   }
 
@@ -224,21 +252,24 @@ class _MyAppState extends State<MyApp> {
 
 String getAppId() {
   if (Platform.isAndroid) {
-    return 'ca-app-pub-3494606031468782~2722353100'; //'ca-app-pub-3940256099942544~3347511713';
+    return 'ca-app-pub-3494606031468782~2722353100';
+    //return 'ca-app-pub-3940256099942544~3347511713'; //test
   }
   return null;
 }
 
 String getBannerAdUnitId() {
   if (Platform.isAndroid) {
-    return 'ca-app-pub-3494606031468782/2530781411'; //'ca-app-pub-3940256099942544/6300978111';
+    return 'ca-app-pub-3494606031468782/2530781411';
+    //return 'ca-app-pub-3940256099942544/6300978111'; //test
   }
   return null;
 }
 
 String getInterstitialAdUnitId() {
   if (Platform.isAndroid) {
-    return 'ca-app-pub-3494606031468782/8904618076'; //'ca-app-pub-3940256099942544/1033173712';
+    return 'ca-app-pub-3494606031468782/8904618076';
+    //return 'ca-app-pub-3940256099942544/1033173712'; //test
   }
   return null;
 }
